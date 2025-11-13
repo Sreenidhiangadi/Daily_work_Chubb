@@ -3,8 +3,6 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 public class Word_count_streams {
-
-	
 	    public static void main(String[] args) {
 	        String fileName = "C://Users//Angadi Sreenidhi//eclipse-workspace//nov_13_assignment//src//nov_13_assignment//india.txt"; 
 	        try {
@@ -13,13 +11,9 @@ public class Word_count_streams {
 	                    .map(String::toLowerCase)
 	                    .filter(word -> word.equals("india"))
 	                    .count(); 
-
-	            System.out.println("The word appears " + count + " times in the file.");
-
+	            System.out.println("The word appears " + count + " times.");
 	        } catch (IOException e) {
 	            System.out.println( e.getMessage());
 	        }
 	    }
-	
-
 }
