@@ -1,35 +1,38 @@
 package com.flightapp.entity;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-@Table("users")
+@Document
 public class User {
 
-    @Id
-    private Long id;
+	@Id
+	private String id;
 
-    @NotBlank(message = "User name is required")
-    private String name;
+	@NotBlank(message = "User name is required")
+	private String name;
 
-    @NotBlank(message = "Gender is required")
-    private String gender;
+	@NotBlank(message = "Gender is required")
+	private String gender;
 
-    @NotNull(message = "Age is required")
-    private Integer age;
+	@NotNull(message = "Age is required")
+	@Min(value = 1, message = "Age must be positive")
+	private Integer age;
 
-    @NotBlank(message = "Password is required")
-    private String password;
+	@NotBlank(message = "Password is required")
+	private String password;
 
-    @NotBlank(message = "Email is required")
-    @Column("email")
-    private String email;
+	@Email(message = "Invalid email format")
+	@NotBlank(message = "Email is required")
+	private String email;
 
-    @Column("role")
-    private Role role; 
+	@NotNull(message = "User role is required")
+	private Role role;
 }

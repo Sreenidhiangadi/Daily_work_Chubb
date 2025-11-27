@@ -1,51 +1,49 @@
 package com.flightapp.entity;
 
 import java.time.LocalDateTime;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.data.relational.core.mapping.Column;
+import java.util.List;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-@Table("ticket")
+@Document(collection = "tickets")
 public class Ticket {
 
-    @Id
-    private Long id;
+	@Id
+	private String id;
 
-    @NotBlank(message = "PNR cannot be blank")
-    @Column("pnr")
-    private String pnr;
+	@NotBlank(message = "PNR cannot be blank")
+	private String pnr;
 
-    @NotNull(message = "User ID is required")
-    @Column("user_id")
-    private Long userId;
+	@NotBlank(message = "User ID is required")
+	private String userId;
 
-    @NotNull(message = "Departure flight is required")
-    @Column("departure_flight_id")
-    private Long departureFlightId;
+	@NotBlank(message = "Departure flight is required")
+	private String departureFlightId;
 
-    @Column("return_flight_id")
-    private Long returnFlightId;
+	private String returnFlightId;
 
-    @Column("trip_type")
-    private FlightType tripType;
+	@NotNull(message = "Trip type is required")
+	private FlightType tripType;
 
-    @Column("booking_time")
-    private LocalDateTime bookingTime;
+	@NotNull(message = "Booking time is required")
+	private LocalDateTime bookingTime;
 
-    @Column("number_of_seats")
-    private int numberOfSeats;
+	private String seatsBooked;
 
-    @Column("meal_type")
-    private String mealType;
+	private String mealType;
 
-    @Column("total_price")
-    private Double totalPrice;
+	@Min(value = 0, message = "Total price must be positive")
+	private Double totalPrice;
 
-    @Column("canceled")
-    private boolean canceled = false;
+	private boolean canceled;
+	@Transient
+	private List<Passenger> passengers;
 }
