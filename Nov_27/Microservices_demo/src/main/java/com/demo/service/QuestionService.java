@@ -2,6 +2,9 @@ package com.demo.service;
 
 
 import com.demo.Repo.QuestionRepo;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import com.demo.entity.Question;
 import com.demo.entity.QuestionWrapper;
 import com.demo.entity.Response;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class QuestionService {
@@ -46,14 +50,15 @@ public class QuestionService {
 
   
 
-    public ResponseEntity<List<Integer>> getQuestionsForQuiz(String categoryName, Integer numQuestions) {
+    public List<Integer> getQuestionsForQuiz(String categoryName, Integer numQuestions) {
 
-        List<Integer> questions = questionRepo.findRandomQuestionsByCategory(
-                categoryName,numQuestions);  
-       
+        Pageable limit = PageRequest.of(0, numQuestions);
 
-        return new ResponseEntity<>(questions, HttpStatus.OK);
+        List<Question> questions = questionRepo.findRandomQuestionsByCategory(categoryName, limit);
+
+        return questions.stream().map(Question::getId).collect(Collectors.toList());
     }
+
 
     public ResponseEntity<List<QuestionWrapper>> getQuestionsFromId(List<Integer> questionIds) {
         List<QuestionWrapper> wrappers = new ArrayList<>();

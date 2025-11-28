@@ -2,6 +2,7 @@ package com.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,10 +39,11 @@ public class QuestionController {
     }
 
     @GetMapping("/generate")
-    public ResponseEntity<List<Integer>> getQuestionsForQuiz(
-            @RequestParam String categoryName,
-            @RequestParam Integer numQuestions) {
-        return questionService.getQuestionsForQuiz(categoryName, numQuestions);
+    public ResponseEntity<List<Integer>> getQuestionsForQuiz(String categoryName, Integer numQuestions) {
+
+        List<Integer> questions = questionService.getQuestionsForQuiz(categoryName, numQuestions);
+
+        return new ResponseEntity<>(questions, HttpStatus.OK);
     }
 
  
