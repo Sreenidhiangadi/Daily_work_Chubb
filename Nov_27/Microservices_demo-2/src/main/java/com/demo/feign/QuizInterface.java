@@ -13,7 +13,7 @@ import com.demo.entity.Response;
 
 import java.util.List;
 
-@FeignClient("QUESTION-SERVICE")
+@FeignClient("microservices-demo")
 public interface QuizInterface {
     @GetMapping("question/generate")
     public ResponseEntity<List<Integer>> getQuestionsForQuiz

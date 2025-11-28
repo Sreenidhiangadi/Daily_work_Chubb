@@ -1,23 +1,21 @@
 package com.demo.service;
 
 
-import com.demo.Repo.QuestionRepo;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import com.demo.entity.Question;
-import com.demo.entity.QuestionWrapper;
-import com.demo.entity.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.demo.Repo.QuestionRepo;
+import com.demo.entity.Question;
+import com.demo.entity.QuestionWrapper;
+import com.demo.entity.Response;
 
 @Service
 public class QuestionService {

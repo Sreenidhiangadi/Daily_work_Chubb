@@ -1,13 +1,13 @@
 package com.demo.Repo;
 
+import java.util.List;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.repository.query.Param;
-import com.demo.entity.Question;
-import org.springframework.data.domain.Pageable;   
 
-import java.util.List;
+import com.demo.entity.Question;
 
 @Repository
 public interface QuestionRepo extends JpaRepository<Question, Integer> {
