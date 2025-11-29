@@ -91,6 +91,11 @@
 			<artifactId>resilience4j-spring-boot3</artifactId>
 			
 		</dependency>
+		<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+
     </dependencies>
 
     <!-- Dependency Management for Spring Cloud -->
