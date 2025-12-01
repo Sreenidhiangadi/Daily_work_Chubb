@@ -74,7 +74,7 @@ erDiagram
         string toPlace
         datetime departureTime
         datetime arrivalTime
-        int price
+        float price
         int totalSeats
         int availableSeats
     }
@@ -88,7 +88,7 @@ erDiagram
         FlightType tripType
         datetime bookingTime
         string seatsBooked
-        double totalPrice
+        float totalPrice
         boolean canceled
     }
 
