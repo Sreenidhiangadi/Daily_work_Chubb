@@ -29,7 +29,7 @@ class NotificationServiceImplTest {
         BookingEvent event = new BookingEvent();
         event.setEventType("BOOKING_CONFIRMED");
         event.setPnr("PNR123");
-        event.setUserEmail("user@example.com");
+        event.setUserEmail("sreenidhi@gmail.com");
         event.setTotalPrice(1500.0);
 
         notificationService.handleBookingEvent(event);
@@ -38,7 +38,7 @@ class NotificationServiceImplTest {
         verify(mailSender, times(1)).send(captor.capture());
 
         SimpleMailMessage message = captor.getValue();
-        assertThat(message.getTo()).containsExactly("user@example.com");
+        assertThat(message.getTo()).containsExactly("sreenidhi@gmail.com");
         assertThat(message.getSubject())
                 .isEqualTo("Your flight booking is confirmed - PNR PNR123");
         assertThat(message.getText())
@@ -51,7 +51,7 @@ class NotificationServiceImplTest {
         BookingEvent event = new BookingEvent();
         event.setEventType("BOOKING_CANCELLED");
         event.setPnr("PNR456");
-        event.setUserEmail("user2@example.com");
+        event.setUserEmail("sreenidhi@gmail.com");
         event.setTotalPrice(0.0);
 
         notificationService.handleBookingEvent(event);
@@ -60,7 +60,7 @@ class NotificationServiceImplTest {
         verify(mailSender, times(1)).send(captor.capture());
 
         SimpleMailMessage message = captor.getValue();
-        assertThat(message.getTo()).containsExactly("user2@example.com");
+        assertThat(message.getTo()).containsExactly("sreenidhi@gmail.com");
         assertThat(message.getSubject())
                 .isEqualTo("Your flight booking is cancelled - PNR PNR456");
         assertThat(message.getText())
@@ -72,7 +72,7 @@ class NotificationServiceImplTest {
         BookingEvent event = new BookingEvent();
         event.setEventType("SOME_OTHER_EVENT");
         event.setPnr("PNR789");
-        event.setUserEmail("user3@example.com");
+        event.setUserEmail("sreenidhi@gmail.com");
         event.setTotalPrice(999.0);
 
         notificationService.handleBookingEvent(event);
@@ -81,7 +81,7 @@ class NotificationServiceImplTest {
         verify(mailSender, times(1)).send(captor.capture());
 
         SimpleMailMessage message = captor.getValue();
-        assertThat(message.getTo()).containsExactly("user3@example.com");
+        assertThat(message.getTo()).containsExactly("sreenidhi@gmail.com");
         assertThat(message.getSubject())
                 .isEqualTo("Flight booking update");
         assertThat(message.getText())
@@ -93,14 +93,13 @@ class NotificationServiceImplTest {
         BookingEvent event = new BookingEvent();
         event.setEventType("BOOKING_CONFIRMED");
         event.setPnr("PNR999");
-        event.setUserEmail("user4@example.com");
+        event.setUserEmail("sreenidhi@gmail.com");
         event.setTotalPrice(123.0);
 
         doThrow(new MailSendException("fail"))
                 .when(mailSender)
                 .send(any(SimpleMailMessage.class));
 
-        // should not throw – exception is caught and logged
         notificationService.handleBookingEvent(event);
 
         verify(mailSender, times(1)).send(any(SimpleMailMessage.class));

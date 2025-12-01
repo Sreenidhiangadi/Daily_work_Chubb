@@ -13,9 +13,7 @@ public interface FlightService {
 
 	Flux<Flight> getAllFlights();
 
-//    Mono<Flight> updateFlight(String id, Map<String, Object> updates);
-
-    Mono<Flight> searchFlightById(String id);
+	Mono<Flight> searchFlightById(String id);
 
 	Flux<Flight> searchFlights(String fromPlace, String toPlace, LocalDateTime start, LocalDateTime end);
 

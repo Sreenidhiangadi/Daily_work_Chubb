@@ -37,10 +37,10 @@ public class Ticket {
 	private LocalDateTime bookingTime;
 
 	private String seatsBooked;
-	
+
 	@NotBlank
 	private String userEmail;
-	
+
 	private String mealType;
 
 	@Min(value = 0, message = "Total price must be positive")

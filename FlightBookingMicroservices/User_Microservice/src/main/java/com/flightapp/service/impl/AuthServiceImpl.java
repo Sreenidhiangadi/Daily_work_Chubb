@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.flightapp.entity.User;
@@ -20,20 +19,15 @@ public class AuthServiceImpl implements AuthService {
 
 	private Map<String, String> userSessions = new HashMap<>();
 
-	
 	public AuthServiceImpl(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
 
 	@Override
 	public Mono<User> register(User user) {
-	    return userRepository.findByEmail(user.getEmail())
-	        .flatMap(existing ->
-	            Mono.<User>error(new RuntimeException("User already exists with email " + user.getEmail()))
-	        )
-	        .switchIfEmpty(
-	            userRepository.save(user)
-	        );
+		return userRepository.findByEmail(user.getEmail()).flatMap(
+				existing -> Mono.<User>error(new RuntimeException("User already exists with email " + user.getEmail())))
+				.switchIfEmpty(userRepository.save(user));
 	}
 
 	@Override
