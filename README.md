@@ -49,11 +49,11 @@ Each service runs independently with its own database and communicates through *
 - Handling async email notifications
 
 ---
-
-##  ER Diagram 
+## 🗄️ ER Diagram
 
 ```mermaid
-USER ||--o{ TICKET : books
+erDiagram
+    USER ||--o{ TICKET : books
     FLIGHT ||--o{ TICKET : includes
     TICKET ||--o{ PASSENGER : contains
 
@@ -101,4 +101,6 @@ USER ||--o{ TICKET : books
         string mealPreference
         string ticketId
     }
+
+
 
