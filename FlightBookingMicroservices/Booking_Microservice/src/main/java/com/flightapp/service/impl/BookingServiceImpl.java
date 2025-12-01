@@ -9,6 +9,7 @@ import com.flightapp.messaging.BookingEvent;
 import com.flightapp.repository.PassengerRepository;
 import com.flightapp.repository.TicketRepository;
 import com.flightapp.service.BookingService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -35,6 +36,10 @@ public class BookingServiceImpl implements BookingService {
     private static final String TOPIC = "booking-events";
 
     @Override
+    @CircuitBreaker(
+            name = "bookingServiceCircuitBreaker",
+            fallbackMethod = "bookTicketFallback"
+    )
     public Mono<String> bookTicket(String userEmail,
                                    String departureFlightId,
                                    String returnFlightId,
@@ -45,37 +50,30 @@ public class BookingServiceImpl implements BookingService {
 
         return Mono.fromCallable(() -> {
                     FlightDto depFlight = flightClient.getFlight(departureFlightId);
-                    if (depFlight == null) {
-                        throw new RuntimeException("Departure flight not found");
-                    }
-                    if (depFlight.getAvailableSeats() < seatCount) {
-                        throw new RuntimeException("Not enough seats in departure flight");
-                    }
+                    if (depFlight == null) throw new RuntimeException("Departure flight not found");
+                    if (depFlight.getAvailableSeats() < seatCount) throw new RuntimeException("Not enough seats in departure flight");
 
                     FlightDto retFlight = null;
                     if (tripType == FLIGHTTYPE.ROUND_TRIP && returnFlightId != null) {
                         retFlight = flightClient.getFlight(returnFlightId);
-                        if (retFlight == null) {
-                            throw new RuntimeException("Return flight not found");
-                        }
-                        if (retFlight.getAvailableSeats() < seatCount) {
-                            throw new RuntimeException("Not enough seats in return flight");
-                        }
+                        if (retFlight == null) throw new RuntimeException("Return flight not found");
+                        if (retFlight.getAvailableSeats() < seatCount) throw new RuntimeException("Not enough seats in return flight");
                     }
 
                     flightClient.reserveSeats(departureFlightId, seatCount);
+
                     if (retFlight != null) {
                         try {
                             flightClient.reserveSeats(returnFlightId, seatCount);
                         } catch (Exception e) {
                             flightClient.releaseSeats(departureFlightId, seatCount);
-                            throw new RuntimeException("Failed to reserve return flight, rolled back departure", e);
+                            throw new RuntimeException("Failed to reserve return flight, rolled back departure");
                         }
                     }
 
                     return new CheckedFlights(depFlight, retFlight);
                 })
-                .subscribeOn(Schedulers.boundedElastic()) // run blocking Feign calls off event-loop
+                .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(checked -> createTicket(
                         userEmail,
                         departureFlightId,
@@ -84,10 +82,21 @@ public class BookingServiceImpl implements BookingService {
                         tripType,
                         checked.dep(),
                         checked.ret()
-                ))
-                .onErrorResume(e ->
-                        Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e))
-                );
+                ));
+    }
+
+    private Mono<String> bookTicketFallback(String userEmail,
+                                            String departureFlightId,
+                                            String returnFlightId,
+                                            List<Passenger> passengers,
+                                            FLIGHTTYPE tripType,
+                                            Throwable throwable) {
+
+        return Mono.error(new ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Booking service is temporarily unavailable, please try again later",
+                throwable
+        ));
     }
 
     private Mono<String> createTicket(String userEmail,
@@ -105,25 +114,19 @@ public class BookingServiceImpl implements BookingService {
         ticket.setReturnFlightId(returnFlightId);
         ticket.setTripType(tripType);
         ticket.setBookingTime(LocalDateTime.now());
-        ticket.setSeatsBooked(
-                passengers.stream()
-                        .map(Passenger::getSeatNumber)
-                        .collect(Collectors.joining(","))
-        );
+        ticket.setSeatsBooked(passengers.stream().map(Passenger::getSeatNumber).collect(Collectors.joining(",")));
 
         int seatCount = passengers.size();
         double total = depFlight.getPrice() * seatCount;
-        if (retFlight != null) {
-            total += retFlight.getPrice() * seatCount;
-        }
+        if (retFlight != null) total += retFlight.getPrice() * seatCount;
+
         ticket.setTotalPrice(total);
         ticket.setCanceled(false);
 
         return ticketRepository.save(ticket)
                 .flatMap(saved -> {
                     passengers.forEach(p -> p.setTicketId(saved.getId()));
-                    return passengerRepository.saveAll(passengers)
-                            .then(Mono.just(saved));
+                    return passengerRepository.saveAll(passengers).then(Mono.just(saved));
                 })
                 .doOnSuccess(saved -> sendEvent("BOOKING_CONFIRMED", saved))
                 .map(Ticket::getPnr);
@@ -144,9 +147,7 @@ public class BookingServiceImpl implements BookingService {
         return ticketRepository.findByPnr(pnr)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "PNR not found")))
                 .flatMap(ticket -> {
-                    if (ticket.isCanceled()) {
-                        return Mono.just("Ticket already cancelled");
-                    }
+                    if (ticket.isCanceled()) return Mono.just("Ticket already cancelled");
 
                     int seatCount = (ticket.getSeatsBooked() != null && !ticket.getSeatsBooked().isEmpty())
                             ? ticket.getSeatsBooked().split(",").length
@@ -181,13 +182,8 @@ public class BookingServiceImpl implements BookingService {
 
         try {
             kafkaTemplate.send(TOPIC, ticket.getPnr(), event);
-        } catch (Exception ex) {
-            // Kafka is not running yet – ignore the error for now
-            // You can log if you want to see it:
-            // log.warn("Kafka send failed, continuing without publishing event", ex);
-        }
+        } catch (Exception ignored) {}
     }
-
 
     private record CheckedFlights(FlightDto dep, FlightDto ret) {}
 }
