@@ -1,0 +1,3 @@
+2025-11-14 12:12:13,878 INFO  [_GradleProject.App] - Application started
+2025-11-14 12:12:13,879 DEBUG [_GradleProject.App] - Debug message
+2025-11-14 12:12:13,880 ERROR [_GradleProject.App] - Error occurred

@@ -1,0 +1,19 @@
+package nov_13_assignment;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+public class Word_count_streams {
+	    public static void main(String[] args) {
+	        String fileName = "C://Users//Angadi Sreenidhi//eclipse-workspace//nov_13_assignment//src//nov_13_assignment//india.txt"; 
+	        try {
+	            long count = Files.lines(Paths.get(fileName)) 
+	                    .flatMap(line -> Arrays.stream(line.split(" "))) 
+	                    .map(String::toLowerCase)
+	                    .filter(word -> word.equals("india"))
+	                    .count(); 
+	            System.out.println("The word appears " + count + " times.");
+	        } catch (IOException e) {
+	            System.out.println( e.getMessage());
+	        }
+	    }
+}
