@@ -112,13 +112,31 @@ public class BookingServiceImpl implements BookingService {
 
 	@Override
 	public Mono<Ticket> getByPnr(String pnr) {
-		return ticketRepository.findByPnr(pnr);
+	    return ticketRepository.findByPnr(pnr)
+	            .flatMap(ticket ->
+	                    passengerRepository.findByTicketId(ticket.getId())
+	                            .collectList()
+	                            .map(passengers -> {
+	                                ticket.setPassengers(passengers);
+	                                return ticket;
+	                            })
+	            );
 	}
+
 
 	@Override
 	public Flux<Ticket> historyByEmail(String email) {
-		return ticketRepository.findByUserEmail(email);
+	    return ticketRepository.findByUserEmail(email)
+	            .flatMap(ticket ->
+	                    passengerRepository.findByTicketId(ticket.getId())
+	                            .collectList()
+	                            .map(passengers -> {
+	                                ticket.setPassengers(passengers);
+	                                return ticket;
+	                            })
+	            );
 	}
+
 
 	@Override
 	public Mono<String> cancelByPnr(String pnr) {
