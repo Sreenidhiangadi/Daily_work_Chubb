@@ -21,6 +21,10 @@ public class FileStorageService {
     }
 
     public FileEntity saveFile(MultipartFile file) throws Exception {
+        if (!file.getContentType().equals("application/json")) {
+            throw new Exception("Only JSON files are allowed");
+        }
+
         Files.createDirectories(Paths.get(uploadDir));
 
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
