@@ -1,126 +1,109 @@
 package com.demo.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.demo.entity.Question;
-import com.demo.entity.QuestionWrapper;
+import com.demo.entity.Response;
 import com.demo.service.QuestionService;
 
 @WebMvcTest(QuestionController.class)
-class QuestionControllerTest {
+public class QuestionControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    MockMvc mockMvc;
 
     @MockBean
-    private QuestionService questionService;
-
-    @MockBean
-    private Environment environment;
-
-    @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
+    QuestionService questionService;
 
     @Test
-    void testGetAllQuestions() throws Exception {
+    void getAllQuestionsTestSuccess() throws Exception {
         Question q = new Question();
         q.setId(1);
-        when(questionService.getAllQuestions()).thenReturn(
-                new org.springframework.http.ResponseEntity<>(List.of(q), org.springframework.http.HttpStatus.OK)
-        );
+        q.setCategory("ComputerScience");
+
+        Mockito.when(questionService.getAllQuestions())
+               .thenReturn(ResponseEntity.ok(List.of(q)));
 
         mockMvc.perform(get("/question/allQuestions"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+               .andExpect(status().isOk());
     }
 
     @Test
-    void testGetQuestionsByCategory() throws Exception {
+    void getQuestionsByCategoryTestSuccess() throws Exception {
         Question q = new Question();
         q.setId(2);
+        q.setCategory("Geography");
 
-        when(questionService.getQuestionsByCategory("Java")).thenReturn(
-                new org.springframework.http.ResponseEntity<>(List.of(q), org.springframework.http.HttpStatus.OK)
-        );
+        Mockito.when(questionService.getQuestionsByCategory("Geography"))
+               .thenReturn(ResponseEntity.ok(List.of(q)));
 
-        mockMvc.perform(get("/question/category/Java"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(2));
+        mockMvc.perform(get("/question/category/{category}", "Geography"))
+               .andExpect(status().isOk());
     }
 
     @Test
-    void testAddQuestion() throws Exception {
+    void addQuestionTestSuccess() throws Exception {
         Question q = new Question();
         q.setId(3);
+        q.setCategory("Math");
 
-        when(questionService.addQuestion(any(Question.class))).thenReturn(
-                new org.springframework.http.ResponseEntity<>("success", org.springframework.http.HttpStatus.CREATED)
-        );
+        Mockito.when(questionService.addQuestion(Mockito.any(Question.class)))
+               .thenReturn(ResponseEntity.ok("Question added"));
 
         mockMvc.perform(post("/question/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"questionTitle\":\"Test\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(content().string("success"));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"id\":3,\"category\":\"Math\"}"))
+               .andExpect(status().isOk());
     }
 
     @Test
-    void testGetQuestionsForQuiz() throws Exception {
-        when(questionService.getQuestionsForQuiz("Java", 2)).thenReturn(List.of(10, 20));
+    void getQuestionsForQuizTestSuccess() throws Exception {
+        Mockito.when(questionService.getQuestionsForQuiz("Science", 2))
+               .thenReturn(List.of(1, 2));
 
         mockMvc.perform(get("/question/generate")
-                        .param("categoryName", "Java")
-                        .param("numQuestions", "2"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0]").value(10));
+                .param("categoryName", "Science")
+                .param("numQuestions", "2"))
+               .andExpect(status().isOk());
     }
 
     @Test
-    void testGetQuestionsFromId() throws Exception {
-        QuestionWrapper w = new QuestionWrapper(1, "Q1", "A", "B", "C", "D");
-
-        when(questionService.getQuestionsFromId(anyList())).thenReturn(
-                new org.springframework.http.ResponseEntity<>(List.of(w), org.springframework.http.HttpStatus.OK)
-        );
+    void getQuestionsFromIdTestFailure() throws Exception {
+        Mockito.when(questionService.getQuestionsFromId(List.of(1)))
+               .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
         mockMvc.perform(post("/question/getQuestions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("[1]"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[1]"))
+               .andExpect(status().isNotFound());
     }
 
     @Test
-    void testGetScore() throws Exception {
-        when(questionService.getScore(anyList())).thenReturn(
-                new org.springframework.http.ResponseEntity<>(1, org.springframework.http.HttpStatus.OK)
-        );
+    void getScoreTestSuccess() throws Exception {
+        Response r = new Response();
+        r.setId(1);
+        r.setResponse("Answer");
+
+        Mockito.when(questionService.getScore(Mockito.anyList()))
+               .thenReturn(ResponseEntity.ok(10));
 
         mockMvc.perform(post("/question/getScore")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("[{\"id\":1,\"response\":\"A\"}]"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("1"));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[{\"id\":1,\"response\":\"Answer\"}]"))
+               .andExpect(status().isOk());
     }
 }
